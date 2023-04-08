@@ -29,10 +29,10 @@ jobs:
           delay()
           {
           random_time=$(($RANDOM % $1))
-          echo "等待 ${random_time} 分钟后开始签到"
+          echo "等待 ${random_time} 分鐘後開始執行"
           for((i=1;i<=${random_time};i++));  
           do
-          echo "倒计时 $[${random_time}-$i] 分钟"
+          echo "倒數 $[${random_time}-$i] 分鐘"
           sleep 1m
           done
           }
@@ -40,7 +40,7 @@ jobs:
           delay 30
 
           # 更改时区
-          sudo cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+          sudo cp /usr/share/zoneinfo/Asia/Taipei /etc/localtime
           
           # 列出文件(此处不展示)
           echo `date +"%Y-%m-%d %H:%M:%S"` begin > time.log
