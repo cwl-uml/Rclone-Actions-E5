@@ -58,5 +58,5 @@ jobs:
          git config --global user.email "willie@hi2.in"
          git config --global user.name "cwl-uml"
          git add .
-         git commit -am "new rclone config"
+         git commit -am "new rcloneNew config"
          git push
