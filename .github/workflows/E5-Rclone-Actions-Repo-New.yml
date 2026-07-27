@@ -12,31 +12,30 @@ jobs:
     steps:
 
       - name: Checkout codes
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4  # 修正 1：升級至 v4 解決 Node.js 警告
 
       - name: Install rclone #安装rclone
         run: curl https://rclone.org/install.sh | sudo bash
 
       - name: Unzip config #解压配置文件
         run: |
-         mkdir -p ~/.config/rclone/
-         unzip -P ${{ secrets.PASSWD }} rcloneNew.zip -d ~/.config/rclone/
-     
+          mkdir -p ~/.config/rclone/
+          unzip -P ${{ secrets.PASSWD }} rcloneNew.zip -d ~/.config/rclone/
+      
       - name: Run rclone #运行rclone
         run: |
-          
           # 延迟函数
           delay()
           {
-          random_time=$(($RANDOM % $1))
-          echo "等待 ${random_time} 分鐘後開始執行"
-          for((i=1;i<=${random_time};i++));  
-          do
-          echo "倒數 $[${random_time}-$i] 分鐘"
-          sleep 1m
-          done
+            random_time=$(($RANDOM % $1))
+            echo "等待 ${random_time} 分鐘後開始執行"
+            for((i=1;i<=${random_time};i++));  
+            do
+              echo "倒數 $[${random_time}-$i] 分鐘"
+              sleep 1m
+            done
           }
-          # 随机延迟0~30分钟后再进行操作,可自行设置时间
+          # 随机延迟0~15分钟后再进行操作
           delay 15
 
           # 更改时区
@@ -50,13 +49,22 @@ jobs:
           rclone move lsf.log e5New:/Rclone-Actions-E5/
           rclone delete e5New:/Rclone-Actions-E5/lsf.log
           rclone rmdir e5New:/Rclone-Actions-E5/
+
       - name: Zip config #打包配置文件
-        run: zip -P ${{ secrets.PASSWD }} rcloneNew.zip -j ~/.config/rclone/rclone.conf
+        run: |
+          # 修正 2：檢查檔案是否存在，避免 Exit code 7
+          if [ -f ~/.config/rclone/rclone.conf ]; then
+            zip -P ${{ secrets.PASSWD }} -j rcloneNew.zip ~/.config/rclone/rclone.conf
+          else
+            echo "rclone.conf 檔案不存在！"
+            exit 1
+          fi
 
       - name: Commit config #提交配置文件
         run: |
-         git config --global user.email "willie@hi2.in"
-         git config --global user.name "cwl-uml"
-         git add .
-         git commit -am "new rcloneNew config"
-         git push
+          git config --global user.email "willie@hi2.in"
+          git config --global user.name "cwl-uml"
+          git add .
+          # 防止若沒有 Token 變更時 git commit 失敗
+          git diff --quiet && git diff --staged --quiet || git commit -am "new rcloneNew config"
+          git push
